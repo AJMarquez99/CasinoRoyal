@@ -1,6 +1,5 @@
 from .utils import *
 from typing import List, Optional, Union
-from collections import deque 
 import random    
 
 class Card:
