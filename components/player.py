@@ -1,5 +1,5 @@
-from .deck import *
-from .chip import *
+from typing import Optional
+from .pot import Pot
 
 class Player():
     def __init__(self, name: str, wallet: int):

@@ -1,7 +1,8 @@
+from .utils import *
 from .deck import *
 from .wheel import *
-from .utils import *
-from .chip import *
+from .chip import Chip
+from .pot import Pot
 from .player import *
 from .table import *
 
@@ -16,9 +17,7 @@ __all__ = [
     'Symbol',
     'Player',
     'Table',
-    'BlackJackTable',
     'Seat',
-    'BlackJackSeat',
     'get_card_color',
     'bool_input'
 ]
