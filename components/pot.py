@@ -67,6 +67,11 @@ class Pot(dict):
             self[color] *= x
 
         return self
+    
+    def divide(self, x: int) -> 'Pot':
+        total = self.total / x
+        new = total - (total % 5)
+        return self.buy_in(new)
 
     @staticmethod
     def buy_in(total: int, ask: Optional['Pot'] = None) -> 'Pot':

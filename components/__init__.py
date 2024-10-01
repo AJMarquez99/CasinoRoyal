@@ -8,6 +8,7 @@ from .table import *
 
 __all__ = [
     'Card',
+    'Chip',
     'Pot',
     'Deck',
     'Spoke',
