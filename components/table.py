@@ -19,10 +19,6 @@ class Seat:
     def bet(self) -> Pot:
         return self._bet
     
-    @bet.setter
-    def bet(self, bet: Pot):
-        self._bet = bet
-    
     @property
     def empty(self) -> bool:
         return self._player is None
@@ -30,28 +26,32 @@ class Seat:
     def sit(self, player: Player) -> bool:
         if self._player is None:
             self._player = player
-            return True
-        return False
+        else:
+            raise AttributeError(f"This seat is take by {str(self._player)}.")
     
-    def leave(self) -> bool:
+    def leave(self):
         if not self._bet:
             self._player = None
-            return True
-        print(f"There is a current bet, Player({self._player.name}) cannot leave.")
-        return False
+        else:
+            raise AttributeError(f"There is a current bet, {str(self._player)} cannot leave.")
+    
+    def make_bet(self, bet: Union[int, Pot]):
+        self._bet = self._player.bet(bet)
 
-    def pay(self, amt: Pot):
-        self._player.chips.append(amt)
-        self.bet = Pot()
+    def pay(self, amt: Union[int, Pot]):
+        self._player.pay(amt)
+
+        self._bet.clear()
 
     def __repr__(self):
-        return f"Seat(Player=None)" if self.player is None else f"Seat(Player={self.player.name})"
+        return f"Seat(Player=None)" if self.player is None else f"Seat(Player={self.player.name}, Bet Amount={self._bet})"
 
 class Table(ABC):
-    def __init__(self, min_bet: int, max_bet: int | None, limit: int = 6):
+    def __init__(self, min_bet: int = 0, max_bet: int | None = None, limit: int = 6):
         self._min_bet = min_bet
         self._max_bet = max_bet
         self._seats: List[Seat] = [Seat() for _ in range(limit)]
+        self._player_limit = limit
 
     @property
     def min_bet(self) -> int:
@@ -60,6 +60,10 @@ class Table(ABC):
     @property
     def max_bet(self) -> Optional[int]:
         return self._max_bet
+    
+    @property
+    def player_limit(self) -> int:
+        return self._player_limit
     
     @property
     def seats(self) -> List[Seat]:
@@ -80,32 +84,28 @@ class Table(ABC):
     def get_player(self, index: int) -> Optional[Player]:
         return self._seats[index].player
     
-    def show_seats(self):
-        print(self._seats)
-
-    def show_players(self):
-        print(self.players)
+    def find_player(self, player: Player) -> Seat:
+        for seat in self._seats:
+            if seat.player == player:
+                return seat
+        raise ValueError(f"{player} is not at this table!")
     
-    def join(self, player: Player, index: Optional[int] = None) -> bool:
+    def join(self, player: Player, index: Optional[int] = None):
         if index is not None:
-            if 0 <= index < len(self._seats) and self.get_player(index) is None:
-                self._seats[index].sit(player)
-                return True
-            else:
-                print(f"Table seat {index} is not available")
-                return False
+            try:
+                if 0 <= index < len(self._seats):
+                    self._seats[index].sit(player)
+            except Exception as e:
+                raise IndexError(f"Table seat {index} is not available. {e}")
         else:
+            sat = False
             for i, seat in enumerate(self._seats):
                 if seat.player is None:
-                    self._seats[i].sit(player)
-                    return True
-        print("Table is full")
-        return False
+                    seat.sit(player)
+                    sat = True
+                    break
+            if not sat:
+                raise IndexError("Table is full!")
         
     def leave(self, player: Player):
-        for i, seat in enumerate(self._seats):
-            if seat.player == player:
-                self.seat.leave()
-                return True
-        print(f"{player} is not at this table")
-        return False
+        self.find_player(player).leave()
