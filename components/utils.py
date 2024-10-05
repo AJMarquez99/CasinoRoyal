@@ -1,4 +1,5 @@
 from aenum import Enum, NoAlias
+from typing import Union
 
 class Suit(Enum):
     HEARTS = "Hearts"

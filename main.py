@@ -1,47 +1,78 @@
+from typing import List
+
 from components import *
-from games import BlackJack, BlackJackAI
+from games import *
 
 def main():
     print("TESTING:")
     
-    blackjack = BlackJack(25, show=True)
+    local = False
+    players: List[Player] = []
+    player_limit = 6
+    narrate_speed = 0
 
-    #players = []
-    #while True:
-    #    response = bool_input("Would you like to add a player? (Y/N)\n")
-    #    if response:
-    #        name = input("Player Name: ")
-    #        cash = int(input("Starting Cash: "))
-    #        chips = int(input("Buy In Amount: "))
-    #        ask = input("Would you like to a specific chip count? \nIf so, please specify the number of each from left to right:\n (Black: 100, Green: 50, Red: 20, Blue: 10, White: 5)\n")
-    #        if ask:
-    #          ask = map(lambda x: x.trim(), ask.split(","))
+    if local:
+        narrate_speed = 1.5
+        while len(players) < player_limit:
+            response = bool_input("\nWould you like to add a player? (Y/N)\n")
+            if response:
+                name = input("Player Name: ")
+                cash = int(input("Starting Cash: "))
+                players.append(Player(cash, name))
+            else:
+                break
 
+        if len(players) < player_limit:
+            while len(players) < player_limit:
+                response = bool_input("\nWould you like to add an AI player? (Y/N)\n")
+                if response:
+                    cash = int(input("Starting Cash: "))
+                    players.append(AI(cash))
+                else:
+                    break
+    else:
+        players.append(AI(1000, "Alejandro"))
+        players.append(AI(750))
+        players.append(AI(500))
+        players.append(AI(400))
+        players.append(AI(300))
+        players.append(AI(200))
+    
 
-    player1 = BlackJackAI("Alejandro", 500)
-    player2 = BlackJackAI("Adam", 500)
-    player3 = BlackJackAI("Alexa", 500)
-    player4 = BlackJackAI("AI1", 500)
+    print("\nJoining game...")
+    
+    blackjack = BlackJack(25, narrate=True, narrate_speed=narrate_speed)
+    for player in players:
+        if not isinstance(player, AI):
+            player.buy_in()
+        blackjack.join(player)
 
-    player1.buy_in(500, Pot({Color.BLACK: 2, Color.GREEN: 2, Color.RED: 5, Color.BLUE: 5, Color.WHITE: 10}))
-    player2.buy_in(500, Pot({Color.GREEN: 4, Color.RED: 5, Color.BLUE: 15, Color.WHITE: 10}))
-    player3.buy_in(500, Pot({Color.GREEN: 4, Color.RED: 5, Color.BLUE: 15, Color.WHITE: 10}))
-    player4.buy_in(500, Pot({Color.GREEN: 4, Color.RED: 5, Color.BLUE: 15, Color.WHITE: 10}))
-
-    blackjack.show_seats()
-
-    blackjack.join(player1)
-    blackjack.join(player2)
-    blackjack.join(player3)
-    blackjack.join(player4)
-
-    blackjack.show_players()
+    for seat in blackjack.seats_with_players:
+        print(repr(seat.player))
+    
+    print()
 
     games = 0
-    while True:
-        games += 1
-        blackjack.play()
-        print(f"Games Played: {games}")
+    try:
+        while True:
+            games += 1
+
+            if games > 10000:
+                break
+            
+            if narrate_speed > 0 or True:
+                print(f"Game # {games}")
+
+            if blackjack.play() == False:
+                break
+
+    except Exception as e:
+        print(e)
+        exit()
+
+    print(f"\nGames Player: {games}\n")
+    for player in players:
+        print(repr(player))
 
 if __name__ == "__main__":
     main()

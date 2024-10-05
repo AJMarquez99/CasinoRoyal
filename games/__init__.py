@@ -1,6 +1,7 @@
-from .blackjack import BlackJack, BlackJackAI
+from .blackjack.blackjack import BlackJack
+from .blackjack.player import AI
 
 __all__ = [
     'BlackJack',
-    'BlackJackAI',
+    'AI'
 ]

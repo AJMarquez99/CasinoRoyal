@@ -1,5 +1,5 @@
 from .utils import Color
-from typing import List, Dict
+from typing import List, Dict, Union
 from functools import total_ordering
 
 @total_ordering
@@ -15,6 +15,7 @@ class Chip:
         Color.BLACK: 100
     }
     _value_color_map = {value: color for color, value in _color_value_map.items()}
+    _min = min(_value_color_map.keys())
 
     def __new__(cls, value: int):
         if value not in cls._instances:
@@ -35,26 +36,52 @@ class Chip:
         return self._color
     
     @classmethod
+    def min_value(cls) -> int:
+        return min(cls._color_value_map.values())
+    
+    @classmethod
+    def get(cls, val: Union[int, Color]) -> Union[int, Color]:
+        if not isinstance(val, int) and not isinstance(val, Color):
+            raise ValueError("Can only get Chip values by Color or Int.")
+
+        if isinstance(val, int):
+            if val in cls._value_color_map.keys():
+                return cls._value_color_map[val]
+            else:
+                raise ValueError(f"There is no chip color that correlates to int ({val}).")
+        
+        if isinstance(val, Color):
+            if val in cls._color_value_map.keys():
+                return cls._color_value_map[val]
+            else:
+                raise ValueError(f"There is no chip color that correlates to color ({val.value}).")
+    
+    @classmethod
     def from_color(cls, color: Color) -> 'Chip':
         return cls(cls._color_value_map[color])
     
     @classmethod
-    def get_chip_list(cls) -> Dict[Color, int]:
+    def chip_types(cls) -> Dict[Color, int]:
         return cls._color_value_map
     
-    @staticmethod
-    def optimize(chips: List['Chip']) -> List['Chip']:
-        total_value = sum(chip.value for chip in chips)
-        optimized = []
-        for _, value in sorted(Chip._color_value_map, key=lambda item: item.value, reverse=True):
-            while total_value >= value:
-                optimized.append(Chip(value))
-                total_value -= value
-        return optimized
+    @classmethod
+    def next_denomination(cls, val: 'Chip', ascending: bool = False) -> 'Chip':
+        val_map = list(sorted(cls._color_value_map.values(), reverse=ascending))
+        index = val_map.index(val.value)
+
+        if not index:
+            denomination = "bigger" if ascending else "smaller"
+            raise IndexError(f"There is no {denomination} denomination.")
+        
+        return Chip(val_map[index - 1])
     
     @staticmethod
     def get_total(chips: List['Chip']) -> int:
         return sum(chip.value for chip in chips)
+    
+    @staticmethod
+    def to_chip_int(val: Union[int, float]) -> int:
+        return int(val - (val % Chip.min_value()))
             
     def __repr__(self):
         return f"Chip(value={self._value}, color={self._color})"

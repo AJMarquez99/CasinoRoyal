@@ -20,7 +20,7 @@ __all__ = [
     'Table',
     'Seat',
     'get_card_color',
-    'bool_input'
+    'bool_input',
 ]
 
 """

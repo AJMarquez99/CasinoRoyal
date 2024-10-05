@@ -29,12 +29,14 @@ class Deck(List[Card]):
         random.shuffle(self)
         return self
     
-    def draw(self, qty: int = 1) -> Union[Card, 'Deck', None]:
+    def draw(self, qty: int = 1) -> Union[Card, 'Deck']:
         if not self:
-            return None
+            raise IndexError("Deck does not have any more cards to draw.")
+        
         if qty == 1:
             return self.pop()
-        return Deck([self.pop() for _ in range(min(qty, len(self)))])
+        
+        return Deck([self.pop() for _ in range(qty)])
     
     def discard(self, index: Optional[int]) -> Card:
         return self.pop(index) if index is not None else self.pop()
@@ -49,53 +51,39 @@ class Deck(List[Card]):
             return None
         return self[-1]
     
-    def show(self, as_string = False) -> Optional[str]:
-        if as_string:
-            return f"[{', '.join([card.name for card in self])}]"
-        else:
-            print(f"[{', '.join([card.name for card in self])}]")
-
-    def find(self, val: Union[Symbol, Suit]) -> Optional[int]:
-        if isinstance(val, Symbol):
-            for x, card in enumerate(self):
-                temp = "True" if card.symbol == val else "False"
-                if card.symbol == val:
-                    return x
-            return None
-        if isinstance(val, Suit):
-            for x, card in enumerate(self):
-                if card.suit == val:
-                    return x
-            return None
-        raise ValueError("Deck search can only take a Suit or Symbol")
-    
-    def is_full_deck(self) -> bool:
-        return len(self) % 52 == 0
-    
     @staticmethod
     def create_standard_deck(qty: int = 1) -> 'Deck':
         deck = Deck()
         for _ in range(qty):
-            deck.extend([Card(sym, suit) for suit in Suit for sym in Symbol if sym != Symbol.JOKER])
+            deck.extend(Deck([Card(sym, suit) for suit in Suit for sym in Symbol if sym != Symbol.JOKER]))
         return deck
 
-    def append(self, value: any) -> None:
-        if not isinstance(value, Card) |  isinstance(value, List):
+    def append(self, val: Union[Card, 'Deck']) -> 'Deck':
+        if not isinstance(val, Card) |  isinstance(val, Deck):
             raise TypeError("Deck can only contain Card instances")
-        if isinstance(value, List):
-            self.extend(value)
+        
+        if isinstance(val, Deck):
+            self.extend(val)
         else:
-            super().append(value)
+            super().append(val)
+        
+        return self
 
-    def extend(self, values: List) -> None:
-        if not all(isinstance(card, Card) for card in values):
-            raise TypeError("Deck can only contain Card instances")
-        super().extend(values)
+    def extend(self, val: 'Deck') -> 'Deck':
+        if isinstance(val, Deck):
+            super().extend(val)
+            return self
+
+        raise TypeError("Deck can only be extended by a Deck")
+        
 
     def __setitem__(self, index, value):
         if not isinstance(value, Card):
             raise TypeError("Deck can only contain Card instances")
         super().__setitem__(index, value)
 
+    def __str__(self):
+        return f"({', '.join([card.name for card in self])})"
+
     def __repr__(self):
-        return f"Deck(cards={len(self)})"
+        return f"Deck(length={len(self)}, cards=[{', '.join([card.name for card in self])}])"
